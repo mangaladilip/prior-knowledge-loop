@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS 083: Logic Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-green: #77a766;
+            --accent-yellow: #e8d227;
+            --bg-white: #f9f9fa;
+            --card-off-white: #f2f1e8;
+            --text-dark: #232323;
+            --error-red: #b83f5c;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            /* LIVE ANIMATED BACKGROUND */
+            background: linear-gradient(-45deg, #77a766, #8dbd7e, #5d8a4d, #77a766);
+            background-size: 400% 400%;
+            animation: liveGradient 12s ease infinite;
+        }
+
+        @keyframes liveGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .quiz-container { width: 90%; max-width: 500px; position: relative; }
+
+        .question-card {
+            background-color: var(--card-off-white);
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+            display: none;
+            border-bottom: 8px solid var(--text-dark);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .active { display: block; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h2 { margin-top: 0; font-size: 1.3rem; line-height: 1.4; }
+
+        .options { display: flex; flex-direction: column; gap: 12px; margin: 25px 0; }
+
+        .option {
+            background: var(--bg-white);
+            padding: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.3s;
+            font-weight: 400;
+        }
+
+        .option:hover { border-color: var(--accent-yellow); }
+        .option.selected { border-color: var(--primary-green); background: #fff; }
+
+        .next-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            background: var(--text-dark);
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            display: none; /* Locked */
+        }
+
+        /* FEEDBACK MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(35, 35, 35, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: var(--bg-white);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .logic-header {
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--primary-green);
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .logic-panel {
+            background: #eee;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+
+        .close-btn {
+            background: var(--primary-green);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div id="q1" class="question-card active">
+        <h2>Q1. Which of the following best describes a sequence of instructions followed step-by-step?</h2>
+        <div class="options">
+            <div class="option" onclick="handleChoice(this, true, 1)">Algorithm</div>
+            <div class="option" onclick="handleChoice(this, false, 1)">Variable</div>
+            <div class="option" onclick="handleChoice(this, false, 1)">Output</div>
+            <div class="option" onclick="handleChoice(this, false, 1)">Loop</div>
+        </div>
+        <button id="btn1" class="next-btn" onclick="nextQ(1)">Continue to Question 2</button>
+    </div>
+
+    <div id="q2" class="question-card">
+        <h2>Q2. What is the value of <b>i</b> after this code is executed?</h2>
+        <div style="background:var(--text-dark); color:white; padding:15px; border-radius:10px; font-family:monospace; margin-bottom:15px;">
+            i = 1<br>i = i + 1
+        </div>
+        <div class="options">
+            <div class="option" onclick="handleChoice(this, false, 2)">1</div>
+            <div class="option" onclick="handleChoice(this, true, 2)">2</div>
+            <div class="option" onclick="handleChoice(this, false, 2)">3</div>
+            <div class="option" onclick="handleChoice(this, false, 2)">0</div>
+        </div>
+        <button id="btn2" class="next-btn" onclick="alert('Module Complete!')">Finalize Results</button>
+    </div>
+</div>
+
+<div id="modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 id="modal-title"></h2>
+        <p id="modal-text"></p>
+        
+        <div class="logic-header">Flowchart / Logic View</div>
+        <div class="logic-panel" id="logic-content"></div>
+        
+        <button class="close-btn" onclick="closeModal()">Got it!</button>
+    </div>
+</div>
+
+<script>
+    const explanations = {
+        1: {
+            correct: "Great work! An algorithm is the logical roadmap for any task.",
+            wrong: "Not quite. An algorithm is the set of steps used to reach an outcome.",
+            logic: "FLOWCHART:\n[START] -> [STEP A] -> [STEP B] -> [END]\n\nPSEUDOCODE:\n1. Input Data\n2. Process sequentially\n3. Show Result"
+        },
+        2: {
+            correct: "Exactly! This is known as 'incrementing' a variable.",
+            wrong: "Remember, the '=' sign updates the current memory location.",
+            logic: "FLOWCHART:\n[i ← 1] -> [New Value = 1 + 1] -> [i ← 2]\n\nPSEUDOCODE:\nSET i = 1\nINCREMENT i by 1\nDISPLAY i"
+        }
+    };
+
+    function handleChoice(element, isCorrect, qNum) {
+        const options = element.parentElement.querySelectorAll('.option');
+        options.forEach(o => o.classList.remove('selected'));
+        element.classList.add('selected');
+
+        document.getElementById('btn' + qNum).style.display = 'block';
+
+        if(isCorrect) {
+            confetti({ particleCount: 120, spread: 60, origin: { y: 0.7 }, colors: ['#77a766', '#e8d227'] });
+            document.getElementById('modal-title').innerText = "Correct!";
+            document.getElementById('modal-title').style.color = "var(--primary-green)";
+        } else {
+            document.getElementById('modal-title').innerText = "Keep Learning!";
+            document.getElementById('modal-title').style.color = "var(--error-red)";
+        }
+
+        document.getElementById('modal-text').innerText = isCorrect ? explanations[qNum].correct : explanations[qNum].wrong;
+        document.getElementById('logic-content').innerText = explanations[qNum].logic;
+        document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    function nextQ(curr) {
+        document.getElementById('q' + curr).classList.remove('active');
+        document.getElementById('q' + (curr + 1)).classList.add('active');
+    }
+</script>
+
+</body>
+</html>
